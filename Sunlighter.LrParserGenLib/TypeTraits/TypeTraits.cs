@@ -401,6 +401,52 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
         }
     }
 
+    public sealed class BigIntegerTypeTraits : ITypeTraits<BigInteger>
+    {
+        private BigIntegerTypeTraits() { }
+
+        public static BigIntegerTypeTraits Value { get; } = new BigIntegerTypeTraits();
+
+        public int Compare(BigInteger a, BigInteger b)
+        {
+            return a.CompareTo(b);
+        }
+
+        public void AddToHash(HashBuilder b, BigInteger a)
+        {
+            b.Add(HashToken.BigInt);
+            byte[] aBytes = a.ToByteArray();
+            b.Add(aBytes.Length);
+            b.Add(aBytes);
+        }
+
+        public bool CanSerialize(BigInteger a) => true;
+
+        public void Serialize(Serializer dest, BigInteger a)
+        {
+            byte[] aBytes = a.ToByteArray();
+            dest.Writer.Write(aBytes.Length);
+            dest.Writer.Write(aBytes);
+        }
+
+        public BigInteger Deserialize(Deserializer src)
+        {
+            int len = src.Reader.ReadInt32();
+            byte[] aBytes = src.Reader.ReadBytes(len);
+            return new BigInteger(aBytes);
+        }
+
+        public void MeasureBytes(ByteMeasurer measurer, BigInteger a)
+        {
+            measurer.AddBytes(4L + a.GetByteCount());
+        }
+
+        public void AppendToString(StringBuilderStateManager sb, BigInteger a)
+        {
+            sb.Builder.Append(a);
+        }
+    }
+
     public sealed class BooleanTypeTraits : ITypeTraits<bool>
     {
         private BooleanTypeTraits() { }
