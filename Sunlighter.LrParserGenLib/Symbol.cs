@@ -170,9 +170,9 @@ namespace Sunlighter.LrParserGenLib
             return ds.GetSymbol(src.Reader.ReadInt32());
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, UnnamedSymbol a)
+        public void MeasureBytes(ByteMeasurer measurer, UnnamedSymbol a)
         {
-            return 4L;
+            measurer.AddBytes(4L);
         }
 
         public void AppendToString(StringBuilderStateManager sbm, UnnamedSymbol a)

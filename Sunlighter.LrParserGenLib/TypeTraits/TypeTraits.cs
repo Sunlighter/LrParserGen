@@ -11,7 +11,7 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
         bool CanSerialize(T a);
         void Serialize(Serializer dest, T a);
         T Deserialize(Deserializer src);
-        long MeasureBytes(ByteMeasurer measurer, T a);
+        void MeasureBytes(ByteMeasurer measurer, T a);
 
         void AppendToString(StringBuilderStateManager sb, T a);
     }
@@ -299,7 +299,7 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             return src.Reader.ReadString();
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, string a)
+        public void MeasureBytes(ByteMeasurer measurer, string a)
         {
             int len = Encoding.UTF8.GetByteCount(a);
             int lenlen =
@@ -308,7 +308,7 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
                 (len < (1 << 21)) ? 3 :
                 (len < (1 << 28)) ? 4 : 5;
 
-            return (long)lenlen + len;
+            measurer.AddBytes((long)lenlen + len);
         }
 
         public void AppendToString(StringBuilderStateManager sbm, string a)
@@ -348,9 +348,9 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             return src.Reader.ReadInt32();
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, int a)
+        public void MeasureBytes(ByteMeasurer measurer, int a)
         {
-            return 4L;
+            measurer.AddBytes(4L);
         }
 
         public void AppendToString(StringBuilderStateManager sb, int a)
@@ -390,9 +390,9 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             return src.Reader.ReadInt64();
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, long a)
+        public void MeasureBytes(ByteMeasurer measurer, long a)
         {
-            return 8L;
+            measurer.AddBytes(8L);
         }
 
         public void AppendToString(StringBuilderStateManager sb, long a)
@@ -432,9 +432,9 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             return src.Reader.ReadBoolean();
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, bool a)
+        public void MeasureBytes(ByteMeasurer measurer, bool a)
         {
-            return 1L;
+            measurer.AddBytes(1L);
         }
 
         public void AppendToString(StringBuilderStateManager sb, bool a)
@@ -476,9 +476,9 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             return value;
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, T a)
+        public void MeasureBytes(ByteMeasurer measurer, T a)
         {
-            return 0L;
+            // do nothing
         }
 
         public void AppendToString(StringBuilderStateManager sb, T a)
@@ -527,9 +527,10 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             return new Tuple<T, U>(item1, item2);
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, Tuple<T, U> a)
+        public void MeasureBytes(ByteMeasurer measurer, Tuple<T, U> a)
         {
-            return item1Traits.MeasureBytes(measurer, a.Item1) + item2Traits.MeasureBytes(measurer, a.Item2);
+            item1Traits.MeasureBytes(measurer, a.Item1);
+            item2Traits.MeasureBytes(measurer, a.Item2);
         }
 
         public void AppendToString(StringBuilderStateManager sb, Tuple<T, U> a)
@@ -582,9 +583,10 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             return (item1, item2);
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, (T, U) a)
+        public void MeasureBytes(ByteMeasurer measurer, (T, U) a)
         {
-            return item1Traits.MeasureBytes(measurer, a.Item1) + item2Traits.MeasureBytes(measurer, a.Item2);
+            item1Traits.MeasureBytes(measurer, a.Item1);
+            item2Traits.MeasureBytes(measurer, a.Item2);
         }
 
         public void AppendToString(StringBuilderStateManager sb, (T, U) a)
@@ -647,9 +649,11 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             return new Tuple<T, U, V>(item1, item2, item3);
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, Tuple<T, U, V> a)
+        public void MeasureBytes(ByteMeasurer measurer, Tuple<T, U, V> a)
         {
-            return item1Traits.MeasureBytes(measurer, a.Item1) + item2Traits.MeasureBytes(measurer, a.Item2) + item3Traits.MeasureBytes(measurer, a.Item3);
+            item1Traits.MeasureBytes(measurer, a.Item1);
+            item2Traits.MeasureBytes(measurer, a.Item2);
+            item3Traits.MeasureBytes(measurer, a.Item3);
         }
 
         public void AppendToString(StringBuilderStateManager sb, Tuple<T, U, V> a)
@@ -714,9 +718,11 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             return (item1, item2, item3);
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, (T, U, V) a)
+        public void MeasureBytes(ByteMeasurer measurer, (T, U, V) a)
         {
-            return item1Traits.MeasureBytes(measurer, a.Item1) + item2Traits.MeasureBytes(measurer, a.Item2) + item3Traits.MeasureBytes(measurer, a.Item3);
+            item1Traits.MeasureBytes(measurer, a.Item1);
+            item2Traits.MeasureBytes(measurer, a.Item2);
+            item3Traits.MeasureBytes(measurer, a.Item3);
         }
 
         public void AppendToString(StringBuilderStateManager sb, (T, U, V) a)
@@ -790,15 +796,16 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             }
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, Option<T> a)
+        public void MeasureBytes(ByteMeasurer measurer, Option<T> a)
         {
+            measurer.AddBytes(1L);
             if (a.HasValue)
             {
-                return 1L + itemTraits.MeasureBytes(measurer, a.Value);
+                itemTraits.MeasureBytes(measurer, a.Value);
             }
             else
             {
-                return 1L;
+                // do nothing
             }
         }
 
@@ -852,9 +859,9 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             return convertBack(itemTraits.Deserialize(src));
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, T a)
+        public void MeasureBytes(ByteMeasurer measurer, T a)
         {
-            return itemTraits.MeasureBytes(measurer, convert(a));
+            itemTraits.MeasureBytes(measurer, convert(a));
         }
 
         public void AppendToString(StringBuilderStateManager sb, T a)
@@ -922,11 +929,11 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             return itemTraits.Deserialize(src);
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, T a)
+        public void MeasureBytes(ByteMeasurer measurer, T a)
         {
             if (isOk(a))
             {
-                return itemTraits.MeasureBytes(measurer, a);
+                itemTraits.MeasureBytes(measurer, a);
             }
             else
             {
@@ -1032,7 +1039,7 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             }
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, T a)
+        public void MeasureBytes(ByteMeasurer measurer, T a)
         {
             if (itemTraits == null)
             {
@@ -1040,7 +1047,7 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             }
             else
             {
-                return itemTraits.MeasureBytes(measurer, a);
+                itemTraits.MeasureBytes(measurer, a);
             }
         }
 
@@ -1206,12 +1213,13 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             }
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, T a)
+        public void MeasureBytes(ByteMeasurer measurer, T a)
         {
             int ca = GetCase(a);
             if (ca < 0) throw new InvalidOperationException("Unrecognized case");
 
-            return StringTypeTraits.Value.MeasureBytes(measurer, cases[ca].Name) + cases[ca].Traits.MeasureBytes(measurer, a);
+            StringTypeTraits.Value.MeasureBytes(measurer, cases[ca].Name);
+            cases[ca].Traits.MeasureBytes(measurer, a);
         }
 
         public void AppendToString(StringBuilderStateManager sb, T a)
@@ -1284,9 +1292,13 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             return result.ToImmutable();
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, ImmutableList<T> a)
+        public void MeasureBytes(ByteMeasurer measurer, ImmutableList<T> a)
         {
-            return 4L + a.Select(i => itemTraits.MeasureBytes(measurer, i)).Sum();
+            measurer.AddBytes(4L);
+            foreach(T item in a)
+            {
+                itemTraits.MeasureBytes(measurer, item);
+            }
         }
 
         public void AppendToString(StringBuilderStateManager sb, ImmutableList<T> a)
@@ -1374,9 +1386,13 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             return result.ToImmutable();
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, ImmutableSortedSet<T> a)
+        public void MeasureBytes(ByteMeasurer measurer, ImmutableSortedSet<T> a)
         {
-            return 4L + a.Select(i => itemTraits.MeasureBytes(measurer, i)).Sum();
+            measurer.AddBytes(4L);
+            foreach(T item in a)
+            {
+                itemTraits.MeasureBytes(measurer, item);
+            }
         }
 
         public void AppendToString(StringBuilderStateManager sb, ImmutableSortedSet<T> a)
@@ -1491,9 +1507,14 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             return result.ToImmutable();
         }
 
-        public long MeasureBytes(ByteMeasurer measurer, ImmutableSortedDictionary<K, V> a)
+        public void MeasureBytes(ByteMeasurer measurer, ImmutableSortedDictionary<K, V> a)
         {
-            return 4L + a.Select(kvp => keyTraits.MeasureBytes(measurer, kvp.Key) + valueTraits.MeasureBytes(measurer, kvp.Value)).Sum();
+            measurer.AddBytes(4L);
+            foreach(KeyValuePair<K, V> kvp in a)
+            {
+                keyTraits.MeasureBytes(measurer, kvp.Key);
+                valueTraits.MeasureBytes(measurer, kvp.Value);
+            }
         }
 
         public void AppendToString(StringBuilderStateManager sbm, ImmutableSortedDictionary<K, V> a)
