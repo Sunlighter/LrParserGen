@@ -18,7 +18,7 @@
             ImmutableList<RuleInfo> ruleInfo,
             ReductionFunc<TValue> reduceFunc
         )
-            : this(parseTable, ruleInfo, reduceFunc, [0], [])
+            : this(parseTable, ruleInfo, reduceFunc, [parseTable.StartState], [])
         {
         }
 
