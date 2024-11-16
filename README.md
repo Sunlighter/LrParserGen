@@ -2,7 +2,7 @@
 
 # LrParserGen
 
-An LR(1) Parser Generator based on reflection
+An LR(1) Parser Generator that obtains grammar rules by using reflection
 
 ## Purpose and Features
 
