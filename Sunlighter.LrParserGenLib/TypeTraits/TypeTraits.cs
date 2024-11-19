@@ -18,30 +18,30 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
 
     public static partial class Extensions
     {
-        public static byte[] SerializeToBytes<T>(this ITypeTraits<T> worker, T a)
+        public static byte[] SerializeToBytes<T>(this ITypeTraits<T> traits, T a)
         {
             using (MemoryStream ms = new MemoryStream())
             {
                 using (BinaryWriter sw = new BinaryWriter(ms, Encoding.UTF8))
                 {
-                    worker.Serialize(new Serializer(sw), a);
+                    traits.Serialize(new Serializer(sw), a);
                     return ms.ToArray();
                 }
             }
         }
 
-        public static T DeserializeFromBytes<T>(this ITypeTraits<T> worker, byte[] b)
+        public static T DeserializeFromBytes<T>(this ITypeTraits<T> traits, byte[] b)
         {
             using (MemoryStream ms = new MemoryStream(b))
             {
                 using (BinaryReader sr = new BinaryReader(ms, Encoding.UTF8))
                 {
-                    return worker.Deserialize(new Deserializer(sr));
+                    return traits.Deserialize(new Deserializer(sr));
                 }
             }
         }
 
-        public static void SerializeToFile<T>(this ITypeTraits<T> worker, string filePath, T a)
+        public static void SerializeToFile<T>(this ITypeTraits<T> traits, string filePath, T a)
         {
             if (File.Exists(filePath))
             {
@@ -56,29 +56,29 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             {
                 using (BinaryWriter sw = new BinaryWriter(fs, Encoding.UTF8))
                 {
-                    worker.Serialize(new Serializer(sw), a);
+                    traits.Serialize(new Serializer(sw), a);
                 }
             }
         }
 
-        public static T DeserializeFromFile<T>(this ITypeTraits<T> worker, string filePath)
+        public static T DeserializeFromFile<T>(this ITypeTraits<T> traits, string filePath)
         {
             using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, 1 << 18, FileOptions.None))
             {
                 using (BinaryReader sr = new BinaryReader(fs, Encoding.UTF8))
                 {
-                    return worker.Deserialize(new Deserializer(sr));
+                    return traits.Deserialize(new Deserializer(sr));
                 }
             }
         }
 
-        public static T LoadOrGenerate<T>(this ITypeTraits<T> worker, string filePath, Func<T> generate)
+        public static T LoadOrGenerate<T>(this ITypeTraits<T> traits, string filePath, Func<T> generate)
         {
             if (File.Exists(filePath))
             {
                 try
                 {
-                    return worker.DeserializeFromFile(filePath);
+                    return traits.DeserializeFromFile(filePath);
                 }
                 catch (Exception exc)
                 {
@@ -87,17 +87,17 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             }
 
             T result = generate();
-            worker.SerializeToFile(filePath, result);
+            traits.SerializeToFile(filePath, result);
             return result;
         }
 
-        public static T LoadOrGenerate<T>(this ITypeTraits<T> worker, string filePath, Func<T> generate, StrongBox<Option<Exception>> fileReadException, StrongBox<Option<Exception>> fileWriteException)
+        public static T LoadOrGenerate<T>(this ITypeTraits<T> traits, string filePath, Func<T> generate, StrongBox<Option<Exception>> fileReadException, StrongBox<Option<Exception>> fileWriteException)
         {
             if (File.Exists(filePath))
             {
                 try
                 {
-                    T val = worker.DeserializeFromFile(filePath);
+                    T val = traits.DeserializeFromFile(filePath);
                     fileReadException.Value = Option<Exception>.None;
                     fileWriteException.Value = Option<Exception>.None;
                     return val;
@@ -112,7 +112,7 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             T result = generate();
             try
             {
-                worker.SerializeToFile(filePath, result);
+                traits.SerializeToFile(filePath, result);
                 fileWriteException.Value = Option<Exception>.None;
             }
             catch(Exception exc)
@@ -123,18 +123,18 @@ namespace Sunlighter.LrParserGenLib.TypeTraits
             return result;
         }
 
-        public static int GetBasicHashCode<T>(this ITypeTraits<T> worker, T a)
+        public static int GetBasicHashCode<T>(this ITypeTraits<T> traits, T a)
         {
             BasicHashBuilder hb = new BasicHashBuilder();
-            worker.AddToHash(hb, a);
+            traits.AddToHash(hb, a);
             return hb.Result;
         }
 
-        public static byte[] GetSHA256Hash<T>(this ITypeTraits<T> worker, T a)
+        public static byte[] GetSHA256Hash<T>(this ITypeTraits<T> traits, T a)
         {
             using (SHA256HashBuilder hb = new SHA256HashBuilder())
             {
-                worker.AddToHash(hb, a);
+                traits.AddToHash(hb, a);
                 return hb.Result;
             }
         }
