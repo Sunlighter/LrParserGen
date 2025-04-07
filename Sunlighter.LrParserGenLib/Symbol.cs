@@ -1,4 +1,4 @@
-﻿using Sunlighter.LrParserGenLib.TypeTraits;
+﻿using Sunlighter.TypeTraitsLib;
 
 namespace Sunlighter.LrParserGenLib
 {
@@ -6,43 +6,44 @@ namespace Sunlighter.LrParserGenLib
     {
         private static ITypeTraits<Symbol> GetTypeTraits()
         {
-            return new UnionTypeTraits<Symbol>
+            return new UnionTypeTraits<string, Symbol>
             (
-                ImmutableList<IUnionCaseTypeTraits<Symbol>>.Empty.AddRange
+                StringTypeTraits.Value,
+                ImmutableList<IUnionCaseTypeTraits<string, Symbol>>.Empty.AddRange
                 (
-                    new IUnionCaseTypeTraits<Symbol>[]
+                    new IUnionCaseTypeTraits<string, Symbol>[]
                     {
-                        new UnionCaseTypeTraits2<Symbol, StartSymbol>
+                        new UnionCaseTypeTraits2<string, Symbol, StartSymbol>
                         (
                             "start",
                             new ConvertTypeTraits<StartSymbol, DBNull>(e => DBNull.Value, new UnitTypeTraits<DBNull>(HashToken.None, DBNull.Value), d => StartSymbol.Value)
                         ),
-                        new UnionCaseTypeTraits2<Symbol, UnnamedSymbol>
+                        new UnionCaseTypeTraits2<string, Symbol, UnnamedSymbol>
                         (
                             "unnamed",
                             UnnamedSymbolTypeTraits.Value
                         ),
-                        new UnionCaseTypeTraits2<Symbol, NamedSymbol>
+                        new UnionCaseTypeTraits2<string, Symbol, NamedSymbol>
                         (
                             "named",
                             new ConvertTypeTraits<NamedSymbol, string>(n => n.Name, StringTypeTraits.Value, s => new NamedSymbol(s))
                         ),
-                        new UnionCaseTypeTraits2<Symbol, TypeSymbol>
+                        new UnionCaseTypeTraits2<string, Symbol, TypeSymbol>
                         (
                             "typeAsSymbol",
                             new ConvertTypeTraits<TypeSymbol, Type>(ts => ts.Value, TypeTypeTraits.Value, ty => new TypeSymbol(ty))
                         ),
-                        new UnionCaseTypeTraits2<Symbol, EpsilonSymbol>
+                        new UnionCaseTypeTraits2<string, Symbol, EpsilonSymbol>
                         (
                             "epsilon",
                             new ConvertTypeTraits<EpsilonSymbol, DBNull>(e => DBNull.Value, new UnitTypeTraits<DBNull>(HashToken.None, DBNull.Value), d => EpsilonSymbol.Value)
                         ),
-                        new UnionCaseTypeTraits2<Symbol, DotSymbol>
+                        new UnionCaseTypeTraits2<string, Symbol, DotSymbol>
                         (
                             "dot",
                             new ConvertTypeTraits<DotSymbol, DBNull>(e => DBNull.Value, new UnitTypeTraits<DBNull>(HashToken.None, DBNull.Value), d => DotSymbol.Value)
                         ),
-                        new UnionCaseTypeTraits2<Symbol, EofSymbol>
+                        new UnionCaseTypeTraits2<string, Symbol, EofSymbol>
                         (
                             "eof",
                             new ConvertTypeTraits<EofSymbol, DBNull>(e => DBNull.Value, new UnitTypeTraits<DBNull>(HashToken.None, DBNull.Value), d=> EofSymbol.Value)
@@ -175,7 +176,7 @@ namespace Sunlighter.LrParserGenLib
             measurer.AddBytes(4L);
         }
 
-        public void AppendToString(StringBuilderStateManager sbm, UnnamedSymbol a)
+        public void AppendDebugString(DebugStringBuilder sbm, UnnamedSymbol a)
         {
             StringBuilder sb = sbm.Builder;
             sb.Append('#');

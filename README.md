@@ -39,16 +39,7 @@ The main reason why this program appears as a single big commit is because I hav
 projects and I copy things out of that collection for publication. (This is also why you will sometimes see code which
 has been commented out; there is probably some other copy where that code is used.)
 
-I have included another (but slightly different) copy of the type traits code that appears in Macro Protocol. In some
-ways I would like to create an all-purpose type traits library, instead of copying it everywhere, but there are a lot
-of variations, some of which incur various forms of overhead, and I am never quite sure which ones to implement.
-
-This implementation of the traits library has traits for `System.Type` and `System.Assembly` which would allow
-instances of these types to be serialized and deserialized, but it might be dangerous to deserialize a file where an
-attacker could have specified an arbitrary type or assembly to deserialize. It should be noted that I do *not* have
-any code that loads assemblies as a result of deserialization. You can only deserialize an assembly if it is already
-loaded. If the deserialized data specifies an assembly which is not loaded, an exception will be thrown during
-deserialization. But I do not know if this is sufficient to ensure security.
+This code has been refactored to use `Sunlighter.TypeTraitsLib` which is now on NuGet.
 
 If you have a large grammar, it may take a long time to generate parsing tables for it. There are various ways to use
 threads to speed up the generation of parser tables, but I have not implemented that at present. Since the type traits

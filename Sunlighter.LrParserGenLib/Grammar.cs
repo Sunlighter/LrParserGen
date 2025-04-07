@@ -1,4 +1,4 @@
-﻿using Sunlighter.LrParserGenLib.TypeTraits;
+﻿using Sunlighter.TypeTraitsLib;
 
 namespace Sunlighter.LrParserGenLib
 {
@@ -30,7 +30,7 @@ namespace Sunlighter.LrParserGenLib
 
         public override int GetHashCode() => typeTraits.Value.GetBasicHashCode(this);
 
-        public override string ToString() => typeTraits.Value.ItemToString(this);
+        public override string ToString() => typeTraits.Value.ToDebugString(this);
     }
 
     public sealed class Item(int ruleNumber, int positionOfDot, Symbol follow)
@@ -81,7 +81,7 @@ namespace Sunlighter.LrParserGenLib
 
         public override int GetHashCode() => typeTraits.Value.GetBasicHashCode(this);
 
-        public override string ToString() => typeTraits.Value.ItemToString(this);
+        public override string ToString() => typeTraits.Value.ToDebugString(this);
     }
 
     public sealed class ItemSet(ImmutableSortedSet<Item> items)
@@ -115,7 +115,7 @@ namespace Sunlighter.LrParserGenLib
 
         public override string ToString()
         {
-            return typeTraits.Value.ItemToString(this);
+            return typeTraits.Value.ToDebugString(this);
         }
     }
 
@@ -125,13 +125,14 @@ namespace Sunlighter.LrParserGenLib
         {
             RecursiveTypeTraits<ParseAction<S>> recurse = new RecursiveTypeTraits<ParseAction<S>>();
 
-            ITypeTraits<ParseAction<S>> cw = new UnionTypeTraits<ParseAction<S>>
+            ITypeTraits<ParseAction<S>> cw = new UnionTypeTraits<string, ParseAction<S>>
             (
-                ImmutableList<IUnionCaseTypeTraits<ParseAction<S>>>.Empty.AddRange
+                StringTypeTraits.Value,
+                ImmutableList<IUnionCaseTypeTraits<string, ParseAction<S>>>.Empty.AddRange
                 (
-                    new IUnionCaseTypeTraits<ParseAction<S>>[]
+                    new IUnionCaseTypeTraits<string, ParseAction<S>>[]
                     {
-                        new UnionCaseTypeTraits2<ParseAction<S>, ParseAction_Shift<S>>
+                        new UnionCaseTypeTraits2<string, ParseAction<S>, ParseAction_Shift<S>>
                         (
                             "shift",
                             new ConvertTypeTraits<ParseAction_Shift<S>, S>
@@ -141,7 +142,7 @@ namespace Sunlighter.LrParserGenLib
                                 s => new ParseAction_Shift<S>(s)
                             )
                         ),
-                        new UnionCaseTypeTraits2<ParseAction<S>, ParseAction_ReduceByRule<S>>
+                        new UnionCaseTypeTraits2<string, ParseAction<S>, ParseAction_ReduceByRule<S>>
                         (
                             "reduce-by-rule",
                             new ConvertTypeTraits<ParseAction_ReduceByRule<S>, int>
@@ -151,7 +152,7 @@ namespace Sunlighter.LrParserGenLib
                                 r => new ParseAction_ReduceByRule<S>(r)
                             )
                         ),
-                        new UnionCaseTypeTraits2<ParseAction<S>, ParseAction_Conflict<S>>
+                        new UnionCaseTypeTraits2<string, ParseAction<S>, ParseAction_Conflict<S>>
                         (
                             "conflict",
                             new ConvertTypeTraits<ParseAction_Conflict<S>, ImmutableList<ParseAction<S>>>
@@ -161,7 +162,7 @@ namespace Sunlighter.LrParserGenLib
                                 ls => new ParseAction_Conflict<S>(ls)
                             )
                         ),
-                        new UnionCaseTypeTraits2<ParseAction<S>, ParseAction_Error<S>>
+                        new UnionCaseTypeTraits2<string, ParseAction<S>, ParseAction_Error<S>>
                         (
                             "error",
                             new ConvertTypeTraits<ParseAction_Error<S>, DBNull>
@@ -449,7 +450,7 @@ namespace Sunlighter.LrParserGenLib
                 }
                 else
                 {
-                    throw new Exception($"Symbol {Symbol.Traits.ItemToString(symbolString[0])} not in table");
+                    throw new Exception($"Symbol {Symbol.Traits.ToDebugString(symbolString[0])} not in table");
                 }
                 symbolString = symbolString.RemoveAt(0);
             }

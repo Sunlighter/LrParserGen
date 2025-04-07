@@ -1,4 +1,4 @@
-﻿using Sunlighter.LrParserGenLib.AssertNotNull;
+﻿using Sunlighter.TypeTraitsLib;
 using System.Reflection;
 
 namespace Sunlighter.LrParserGenLib

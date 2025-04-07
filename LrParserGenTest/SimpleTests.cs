@@ -1,5 +1,5 @@
-using Sunlighter.LrParserGenLib;
-using Sunlighter.LrParserGenLib.TypeTraits;
+﻿using Sunlighter.LrParserGenLib;
+using Sunlighter.TypeTraitsLib;
 using System.Collections.Immutable;
 
 namespace LrParserGenTest
@@ -34,10 +34,11 @@ namespace LrParserGenTest
         {
             RecursiveTypeTraits<Thingy> rec = new RecursiveTypeTraits<Thingy>();
 
-            ITypeTraits<Thingy> tt = new UnionTypeTraits<Thingy>
+            ITypeTraits<Thingy> tt = new UnionTypeTraits<string, Thingy>
             (
+                StringTypeTraits.Value,
                 [
-                    new UnionCaseTypeTraits2<Thingy, TerminalThingy>
+                    new UnionCaseTypeTraits2<string, Thingy, TerminalThingy>
                     (
                         "terminal",
                         new ConvertTypeTraits<TerminalThingy, string>
@@ -47,7 +48,7 @@ namespace LrParserGenTest
                             s => new TerminalThingy(s)
                         )
                     ),
-                    new UnionCaseTypeTraits2<Thingy, PairThingy>
+                    new UnionCaseTypeTraits2<string, Thingy, PairThingy>
                     (
                         "pair",
                         new ConvertTypeTraits<PairThingy, Tuple<Thingy, Thingy>>
@@ -69,7 +70,7 @@ namespace LrParserGenTest
 
         public override string ToString()
         {
-            return Traits.ItemToString(this);
+            return Traits.ToDebugString(this);
         }
     }
 

@@ -1,7 +1,7 @@
-using Sunlighter.LrParserGenLib;
+﻿using Sunlighter.LrParserGenLib;
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
-using Sunlighter.LrParserGenLib.TypeTraits;
+using Sunlighter.TypeTraitsLib;
 using System.Diagnostics;
 
 namespace LrParserGenTest
@@ -15,59 +15,59 @@ namespace LrParserGenTest
 
             foreach (int i in Enumerable.Range(0, rules.Count))
             {
-                Debug.WriteLine("  " + i + ": " + Rule.Traits.ItemToString(rules[i]));
+                Debug.WriteLine("  " + i + ": " + Rule.Traits.ToDebugString(rules[i]));
             }
 
             Grammar g = new Grammar(rules, precedenceRules);
 
             Debug.WriteLine("Nonterminals:");
-            Debug.WriteLine(Grammar.SymbolSetTypeTraits.ItemToString(g.Nonterminals));
+            Debug.WriteLine(Grammar.SymbolSetTypeTraits.ToDebugString(g.Nonterminals));
 
             Debug.WriteLine("Grammar Symbols:");
-            Debug.WriteLine(Grammar.SymbolSetTypeTraits.ItemToString(g.GrammarSymbols));
+            Debug.WriteLine(Grammar.SymbolSetTypeTraits.ToDebugString(g.GrammarSymbols));
 
             Debug.WriteLine("Terminals:");
-            Debug.WriteLine(Grammar.SymbolSetTypeTraits.ItemToString(g.Terminals));
+            Debug.WriteLine(Grammar.SymbolSetTypeTraits.ToDebugString(g.Terminals));
 
             Assert.IsTrue(g.Terminals.Count > 0);
 
             Debug.WriteLine("Nullable:");
-            Debug.WriteLine(Grammar.SymbolSetTypeTraits.ItemToString(g.NullableSet));
+            Debug.WriteLine(Grammar.SymbolSetTypeTraits.ToDebugString(g.NullableSet));
 
             Debug.WriteLine("Interminable:");
-            Debug.WriteLine(Grammar.SymbolSetTypeTraits.ItemToString(g.GrammarSymbols.Except(g.TerminableSet)));
+            Debug.WriteLine(Grammar.SymbolSetTypeTraits.ToDebugString(g.GrammarSymbols.Except(g.TerminableSet)));
 
             Debug.WriteLine("Unreachable:");
-            Debug.WriteLine(Grammar.SymbolSetTypeTraits.ItemToString(g.GrammarSymbols.Except(g.ReachableSet)));
+            Debug.WriteLine(Grammar.SymbolSetTypeTraits.ToDebugString(g.GrammarSymbols.Except(g.ReachableSet)));
 
             Debug.WriteLine("First Table");
-            Debug.WriteLine(Grammar.FirstTableTypeTraits.ItemToString(g.FirstTable));
+            Debug.WriteLine(Grammar.FirstTableTypeTraits.ToDebugString(g.FirstTable));
 
             Debug.WriteLine("Follow Table");
-            Debug.WriteLine(Grammar.FirstTableTypeTraits.ItemToString(g.FollowTable));
+            Debug.WriteLine(Grammar.FirstTableTypeTraits.ToDebugString(g.FollowTable));
 
             Debug.WriteLine("Initial State Set");
-            Debug.WriteLine(ItemSet.TypeTraits.ItemToString(g.InitialStateSet));
+            Debug.WriteLine(ItemSet.TypeTraits.ToDebugString(g.InitialStateSet));
 
             ITypeTraits<ParseAction<ItemSet>> itemSetParseActionCompareWorker = ParseAction<ItemSet>.GetTypeTraits(ItemSet.TypeTraits);
 
             Debug.WriteLine("Parse action on seeing \"EOF\"");
-            Debug.WriteLine(itemSetParseActionCompareWorker.ItemToString(g.GetParseAction(g.InitialStateSet, EofSymbol.Value)));
+            Debug.WriteLine(itemSetParseActionCompareWorker.ToDebugString(g.GetParseAction(g.InitialStateSet, EofSymbol.Value)));
 
             if (g.GrammarSymbols.Contains(new NamedSymbol("begin")))
             {
                 Debug.WriteLine("Parse action on seeing \"begin\"");
-                Debug.WriteLine(itemSetParseActionCompareWorker.ItemToString(g.GetParseAction(g.InitialStateSet, new NamedSymbol("begin"))));
+                Debug.WriteLine(itemSetParseActionCompareWorker.ToDebugString(g.GetParseAction(g.InitialStateSet, new NamedSymbol("begin"))));
             }
 
             Debug.WriteLine("Item Set Parse Table");
 
             foreach (KeyValuePair<ItemSet, ImmutableSortedDictionary<Symbol, ParseAction<ItemSet>>> kvp in g.ItemSetParseTable)
             {
-                Debug.WriteLine("  " + ItemSet.TypeTraits.ItemToString(kvp.Key));
+                Debug.WriteLine("  " + ItemSet.TypeTraits.ToDebugString(kvp.Key));
                 foreach (KeyValuePair<Symbol, ParseAction<ItemSet>> kvp2 in kvp.Value)
                 {
-                    Debug.WriteLine("    " + Symbol.Traits.ItemToString(kvp2.Key) + " " + itemSetParseActionCompareWorker.ItemToString(kvp2.Value));
+                    Debug.WriteLine("    " + Symbol.Traits.ToDebugString(kvp2.Key) + " " + itemSetParseActionCompareWorker.ToDebugString(kvp2.Value));
                 }
             }
 
@@ -80,7 +80,7 @@ namespace LrParserGenTest
                 Debug.WriteLine("  " + i);
                 foreach (KeyValuePair<Symbol, ParseAction<int>> kvp2 in g.IntParseTableData.ParseTable[i])
                 {
-                    Debug.WriteLine("    " + Symbol.Traits.ItemToString(kvp2.Key) + " " + intParseActionCompareWorker.ItemToString(kvp2.Value));
+                    Debug.WriteLine("    " + Symbol.Traits.ToDebugString(kvp2.Key) + " " + intParseActionCompareWorker.ToDebugString(kvp2.Value));
                 }
             }
 
