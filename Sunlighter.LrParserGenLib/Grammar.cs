@@ -724,7 +724,6 @@ namespace Sunlighter.LrParserGenLib
 
             if (noPrecedenceAction is ParseAction_Conflict<ItemSet> conflict)
             {
-#pragma warning disable CA2021 // https://github.com/dotnet/roslyn-analyzers/issues/7357
                 ImmutableList<ParseAction_Shift<ItemSet>> shifts = conflict.ParseActions.OfType<ParseAction_Shift<ItemSet>>().ToImmutableList();
 
                 ImmutableList<ParseAction_ReduceByRule<ItemSet>> reductions = conflict.ParseActions.OfType<ParseAction_ReduceByRule<ItemSet>>().ToImmutableList();
