@@ -893,7 +893,7 @@ namespace Sunlighter.LrParserGenLib
     public sealed class IntParseTableData
     {
         private readonly ImmutableList<ImmutableSortedDictionary<Symbol, ParseAction<int>>> parseTable;
-        private readonly ImmutableSortedDictionary<ItemSet, int> conversionDict;
+        private readonly Option<ImmutableSortedDictionary<ItemSet, int>> conversionDict;
         private readonly int startState;
 
         public IntParseTableData
@@ -904,14 +904,65 @@ namespace Sunlighter.LrParserGenLib
         )
         {
             this.parseTable = parseTable;
-            this.conversionDict = conversionDict;
+            this.conversionDict = Option<ImmutableSortedDictionary<ItemSet, int>>.Some(conversionDict);
+            this.startState = startState;
+        }
+
+        public IntParseTableData
+        (
+            ImmutableList<ImmutableSortedDictionary<Symbol, ParseAction<int>>> parseTable,
+            int startState
+        )
+        {
+            this.parseTable = parseTable;
+            this.conversionDict = Option<ImmutableSortedDictionary<ItemSet, int>>.None;
             this.startState = startState;
         }
 
         public ImmutableList<ImmutableSortedDictionary<Symbol, ParseAction<int>>> ParseTable => parseTable;
 
-        public ImmutableSortedDictionary<ItemSet, int> ConversionDictionary => conversionDict;
+        public Option<ImmutableSortedDictionary<ItemSet, int>> ConversionDictionary => conversionDict;
 
         public int StartState => startState;
+
+        private static readonly Lazy<ITypeTraits<IntParseTableData>> typeTraits = new Lazy<ITypeTraits<IntParseTableData>>(GetTypeTraits, LazyThreadSafetyMode.ExecutionAndPublication);
+
+        private static ITypeTraits<IntParseTableData> GetTypeTraits()
+        {
+            return new ConvertTypeTraits<IntParseTableData, (ImmutableList<ImmutableSortedDictionary<Symbol, ParseAction<int>>>, Option<ImmutableSortedDictionary<ItemSet, int>>, int)>
+            (
+                p => (p.ParseTable, p.ConversionDictionary, p.StartState),
+                new ValueTupleTypeTraits<ImmutableList<ImmutableSortedDictionary<Symbol, ParseAction<int>>>, Option<ImmutableSortedDictionary<ItemSet, int>>, int>
+                (
+                    new ListTypeTraits<ImmutableSortedDictionary<Symbol, ParseAction<int>>>
+                    (
+                        new DictionaryTypeTraits<Symbol, ParseAction<int>>(Symbol.Traits, ParseAction<int>.GetTypeTraits(Int32TypeTraits.Value))
+                    ),
+                    new OptionTypeTraits<ImmutableSortedDictionary<ItemSet, int>>
+                    (
+                        new DictionaryTypeTraits<ItemSet, int>(ItemSet.TypeTraits, Int32TypeTraits.Value)
+                    ),
+                    Int32TypeTraits.Value
+                ),
+                t =>
+                {
+                    if (t.Item2.HasValue)
+                    {
+                        return new IntParseTableData(t.Item1, t.Item2.Value, t.Item3);
+                    }
+                    else
+                    {
+                        return new IntParseTableData(t.Item1, t.Item3);
+                    }
+                }
+            );
+        }
+
+        public static ITypeTraits<IntParseTableData> TypeTraits => typeTraits.Value;
+
+        public IntParseTableData WithoutConversionDictionary()
+        {
+            return new IntParseTableData(parseTable, startState);
+        }
     }
 }
