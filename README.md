@@ -46,6 +46,12 @@ threads to speed up the generation of parser tables, but I have not implemented 
 allow serialization, it should be possible to cache parser tables somewhere, in a file or database for example, but
 that also is not implemented at present.
 
+The class `IntParseTableData` contains generated parse tables for a grammar. This class now has a static `TypeTraits`
+property, and it is possible to use the type traits to serialize instances of the class. The class includes a rather
+large dictionary mapping item sets to states, but since the immutable parser state doesn&rsquo;t use this dictionary,
+it is now optional, and may be dropped before serialization. (However, keeping it around might help with error
+reporting, because it is possible to use it to determine which grammar rules expect which nonterminals.)
+
 My &ldquo;lexical analyzers&rdquo; currently split on whitespace, which makes the lexers easy to write, but this means
 you have to put spaces everywhere in the input to separate the tokens.
 

@@ -88,9 +88,9 @@ namespace Sunlighter.LrParserGenLib
 
     public sealed class UnnamedSymbolTypeTraits : ITypeTraits<UnnamedSymbol>
     {
-        private static Lazy<SerializerStateID> stateId = new Lazy<SerializerStateID>(() => new SerializerStateID(), LazyThreadSafetyMode.ExecutionAndPublication);
+        private static readonly Lazy<SerializerStateID> stateId = new Lazy<SerializerStateID>(() => new SerializerStateID(), LazyThreadSafetyMode.ExecutionAndPublication);
 
-        private static UnnamedSymbolTypeTraits value = new UnnamedSymbolTypeTraits();
+        private static readonly UnnamedSymbolTypeTraits value = new UnnamedSymbolTypeTraits();
 
         private UnnamedSymbolTypeTraits() { }
 
