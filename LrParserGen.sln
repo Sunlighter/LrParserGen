@@ -9,7 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LrParserGenTest", "LrParser
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{4454BC44-E30E-4AE6-8574-6B18588412B5}"
 	ProjectSection(SolutionItems) = preProject
-		LICENSE = LICENSE
+		LICENSE-Apache-2.0 = LICENSE-Apache-2.0
+		LICENSE-MIT = LICENSE-MIT
 		README.md = README.md
 	EndProjectSection
 EndProject
