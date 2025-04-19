@@ -279,6 +279,30 @@ namespace Sunlighter.LrParserGenLib
     {
         public ImmutableSortedSet<Symbol> Symbols => symbols;
         public Associativity Associativity => associativity;
+
+        private static Lazy<ITypeTraits<PrecedenceRule>> typeTraits =
+            new Lazy<ITypeTraits<PrecedenceRule>>(GetTypeTraits, LazyThreadSafetyMode.ExecutionAndPublication);
+
+        private static ITypeTraits<PrecedenceRule> GetTypeTraits()
+        {
+            return new ConvertTypeTraits<PrecedenceRule, (ImmutableSortedSet<Symbol>, Associativity)>
+            (
+                r => (r.Symbols, r.Associativity),
+                new ValueTupleTypeTraits<ImmutableSortedSet<Symbol>, Associativity>
+                (
+                    Grammar.SymbolSetTypeTraits,
+                    new ConvertTypeTraits<Associativity, int>
+                    (
+                        a => (int)a,
+                        Int32TypeTraits.Value,
+                        i => (Associativity)i
+                    )
+                ),
+                t => new PrecedenceRule(t.Item1, t.Item2)
+            );
+        }
+
+        public static ITypeTraits<PrecedenceRule> Traits => typeTraits.Value;
     }
 
     public sealed class Grammar

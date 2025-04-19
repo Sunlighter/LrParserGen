@@ -47,6 +47,8 @@
             return ImmutableSortedSet<Symbol>.Empty.WithComparer(stateInfo.KeyComparer).Union(stateInfo.Keys);
         }
 
+        public IntParseTableData ParseTable => parseTable;
+
         public ImmutableSortedSet<Symbol> AcceptableSymbols => acceptableSymbols.Value;
 
         public bool IsAcceptState => parseTable.ParseTable[stateStack[^1]].TryGetValue(EofSymbol.Value, out ParseAction<int>? pa) && pa is ParseAction_ReduceByRule<int> par && par.RuleNumber == 0;

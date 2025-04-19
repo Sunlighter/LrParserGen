@@ -10,7 +10,9 @@ namespace LrParserGenTest
         [TestMethod]
         public void ComplexTest()
         {
-            ReflectionResults r1 = typeof(ComplexGrammar).BuildGrammar(new TypeSymbol(typeof(ImmutableList<TopLevelElement>)));
+            ReflectionResults r1a = typeof(ComplexGrammar).BuildParser(new TypeSymbol(typeof(ImmutableList<TopLevelElement>)));
+
+            StaticReflectionResults r1 = r1a as StaticReflectionResults ?? throw new InvalidOperationException("r1a is not a StaticReflectionResults");
 
             Func<string, Token<object?>> tokenizeItem = Tokenization.MakeTokenizer(r1.SpecialTokens);
 

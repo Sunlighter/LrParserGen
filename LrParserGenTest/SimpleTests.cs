@@ -10,7 +10,9 @@ namespace LrParserGenTest
         [TestMethod]
         public void SimpleTest()
         {
-            ReflectionResults r1 = typeof(ThingyGrammar).BuildGrammar(new TypeSymbol(typeof(Thingy)));
+            ReflectionResults r1a = typeof(ThingyGrammar).BuildParser(new TypeSymbol(typeof(Thingy)));
+
+            StaticReflectionResults r1 = r1a as StaticReflectionResults ?? throw new InvalidOperationException("r1a is not a StaticReflectionResults");
 
             Func<string, Token<object?>> tokenizeItem = Tokenization.MakeTokenizer(r1.SpecialTokens);
 

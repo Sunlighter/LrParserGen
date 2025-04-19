@@ -3,41 +3,70 @@ using System.Reflection;
 
 namespace Sunlighter.LrParserGenLib
 {
-    public sealed class ReflectionResults
+    public abstract class ReflectionResults
     {
         private readonly Grammar grammar;
-        private readonly ImmutableParserState<object?> initialState;
         private readonly ImmutableList<string> specialTokens;
 
-        public ReflectionResults
+        protected ReflectionResults
         (
             Grammar grammar,
-            ImmutableParserState<object?> initialState,
             ImmutableList<string> specialTokens
         )
         {
             this.grammar = grammar;
-            this.initialState = initialState;
             this.specialTokens = specialTokens;
         }
 
         public Grammar Grammar => grammar;
 
-        public ImmutableParserState<object?> InitialState => initialState;
-
         public ImmutableList<string> SpecialTokens => specialTokens;
+    }
+
+    public sealed class StaticReflectionResults : ReflectionResults
+    {
+        private readonly ImmutableParserState<object?> initialState;
+
+        public StaticReflectionResults
+        (
+            Grammar grammar,
+            ImmutableParserState<object?> initialState,
+            ImmutableList<string> specialTokens
+        )
+            : base(grammar, specialTokens)
+        {
+            this.initialState = initialState;
+        }
+
+        public ImmutableParserState<object?> InitialState => initialState;
+    }
+
+    public sealed class InstanceReflectionResults : ReflectionResults
+    {
+        private readonly Func<object?, ImmutableParserState<object?>> unboundInitialState;
+
+        public InstanceReflectionResults
+        (
+            Grammar grammar,
+            Func<object?, ImmutableParserState<object?>> unboundInitialState,
+            ImmutableList<string> specialTokens
+        )
+            : base(grammar, specialTokens)
+        {
+            this.unboundInitialState = unboundInitialState;
+        }
+
+        public ImmutableParserState<object?> GetInitialState(object? instance)
+        {
+            return unboundInitialState(instance);
+        }
     }
 
     public static class ReflectionUtility
     {
-        private static ImmutableList<MethodBase> GetGrammarRules(this Type sourceType)
+        private static ImmutableList<MethodInfo> GetGrammarRuleMethods(this Type sourceType)
         {
-            ImmutableList<MethodBase> results = ImmutableList<MethodBase>.Empty;
-
-            foreach(ConstructorInfo ci in sourceType.GetConstructors(BindingFlags.Public | BindingFlags.Instance).Where(c => c.IsDefined(typeof(GrammarRuleAttribute))))
-            {
-                results = results.Add(ci);
-            }
+            ImmutableList<MethodInfo> results = ImmutableList<MethodInfo>.Empty;
 
             foreach(MethodInfo mi in sourceType.GetMethods(BindingFlags.Public | BindingFlags.Static | BindingFlags.Instance).Where(m => m.IsDefined(typeof(GrammarRuleAttribute))))
             {
@@ -64,7 +93,7 @@ namespace Sunlighter.LrParserGenLib
                 .ToImmutableList();
         }
 
-        private static ReductionFunc<T> BuildReductionFunc<T>(ImmutableList<Func<ImmutableList<T>, T>> reductionRules)
+        private static ReductionFunc<T> BuildStaticReductionFunc<T>(ImmutableList<Func<ImmutableList<T>, T>> reductionRules)
         {
             T result(ReductionInfo info, ImmutableList<T> args)
             {
@@ -81,49 +110,79 @@ namespace Sunlighter.LrParserGenLib
             return result;
         }
 
-        private static Func<ImmutableList<object?>, object?> GetReduction(MethodBase mb)
+        private static Func<object?, ReductionFunc<T>> BuildReductionFunc<T>(ImmutableList<Func<object?, Func<ImmutableList<T>, T>>> reductionRules)
         {
-            if (mb is ConstructorInfo ci)
+            ReductionFunc<T> bindReductionFunc(object? instance)
             {
-                object? doCi(ImmutableList<object?> args)
+                ImmutableList<Func<ImmutableList<T>, T>> boundReductionRules = reductionRules.Select(r => r(instance)).ToImmutableList();
+
+                T result(ReductionInfo info, ImmutableList<T> args)
                 {
-                    return ci.Invoke(args.ToArray());
+                    if (info.RuleNumber > 0 && info.RuleNumber <= reductionRules.Count)
+                    {
+                        return boundReductionRules[info.RuleNumber - 1](args);
+                    }
+                    else
+                    {
+                        throw new InvalidOperationException($"No reduction found for rule {info.RuleNumber}");
+                    }
                 }
 
-                return doCi;
+                return result;
             }
-            else if (mb is MethodInfo mi)
+
+            return bindReductionFunc;
+        }
+
+        private static Func<ImmutableList<object?>, object?> GetStaticReduction(MethodInfo mi)
+        {
+            if (mi.IsStatic)
             {
-                if (mi.IsStatic)
+                object? doStaticMi(ImmutableList<object?> args)
+                {
+                    return mi.Invoke(null, args.ToArray());
+                }
+
+                return doStaticMi;
+            }
+            else
+            {
+                throw new InvalidOperationException("Method is not static");
+            }
+        }
+        
+        private static Func<object?, Func<ImmutableList<object?>, object?>> GetReduction(MethodInfo mi)
+        {
+            if (mi.IsStatic)
+            {
+                Func<ImmutableList<object?>, object?> bindStaticMi(object? _)
                 {
                     object? doStaticMi(ImmutableList<object?> args)
                     {
                         return mi.Invoke(null, args.ToArray());
                     }
-
                     return doStaticMi;
                 }
-                else
+
+                return bindStaticMi;
+            }
+            else
+            {
+                Func<ImmutableList<object?>, object?> bindInstanceMi(object? instance)
                 {
                     object? doInstanceMi(ImmutableList<object?> args)
                     {
-                        if (args.Count > 0)
-                        {
-                            return mi.Invoke(args[0], args.RemoveAt(0).ToArray());
-                        }
-                        else
-                        {
-                            throw new ArgumentException("Insufficient arguments");
-                        }
+                        return mi.Invoke(instance, args.ToArray());
                     }
 
                     return doInstanceMi;
                 }
+
+                return bindInstanceMi;
             }
-            else throw new InvalidOperationException("Unknown type of MethodBase");
         }
 
-        private static Rule GetRule(MethodBase mb)
+        private static Rule GetRule(MethodInfo mi)
         {
             Symbol lhs;
             ImmutableList<Symbol> rhs = ImmutableList<Symbol>.Empty;
@@ -148,54 +207,64 @@ namespace Sunlighter.LrParserGenLib
 
             void AddParameters()
             {
-                foreach(ParameterInfo pi in mb.GetParameters())
+                foreach(ParameterInfo pi in mi.GetParameters())
                 {
                     rhs = rhs.Add(GetParameterSymbol(pi));
                 }
             }
 
-            if (mb is ConstructorInfo ci)
-            {
-                lhs = new TypeSymbol(ci.DeclaringType.AssertNotNull());
-                AddParameters();
-            }
-            else if (mb is MethodInfo mi)
-            {
-                lhs = GetParameterSymbol(mi.ReturnParameter);
-                AddParameters();
-                if (!mi.IsStatic)
-                {
-                    rhs = rhs.Insert(0, new TypeSymbol(mi.DeclaringType.AssertNotNull()));
-                }
-            }
-            else
-            {
-                throw new InvalidOperationException("Unknown type of MethodBase");
-            }
+            lhs = GetParameterSymbol(mi.ReturnParameter);
+            AddParameters();
 
             return new Rule(lhs, rhs);
         }
 
-        public static ReflectionResults BuildGrammar(this Type sourceType, Symbol goal)
+        private static Lazy<ITypeTraits<(ImmutableList<Rule>, ImmutableList<PrecedenceRule>)>> grammarInfoTypeTraits =
+            new Lazy<ITypeTraits<(ImmutableList<Rule>, ImmutableList<PrecedenceRule>)>>(GetGrammarInfoTypeTraits, LazyThreadSafetyMode.ExecutionAndPublication);
+
+        private static ITypeTraits<(ImmutableList<Rule>, ImmutableList<PrecedenceRule>)> GetGrammarInfoTypeTraits()
         {
-            ImmutableList<MethodBase> mb = sourceType.GetGrammarRules();
+            return new ValueTupleTypeTraits<ImmutableList<Rule>, ImmutableList<PrecedenceRule>>
+            (
+                new ListTypeTraits<Rule>(Rule.Traits),
+                new ListTypeTraits<PrecedenceRule>(PrecedenceRule.Traits)
+            );
+        }
+
+        public static ReflectionResults BuildParser(this Type sourceType, Symbol goal, ICacheStorage? cacheStorage = null)
+        {
+            ImmutableList<MethodInfo> miList = sourceType.GetGrammarRuleMethods();
             ImmutableList<PrecedenceRule> precedenceRules = sourceType.GetPrecedenceRules();
 
-            ImmutableList<Func<ImmutableList<object?>, object?>> reductions = mb.Select(GetReduction).ToImmutableList();
-            ImmutableList<Rule> rules = mb.Select(GetRule).ToImmutableList();
-
+            ImmutableList<Rule> rules = miList.Select(GetRule).ToImmutableList();
             rules = rules.Insert(0, new Rule(StartSymbol.Value, ImmutableList<Symbol>.Empty.Add(goal)));
-
             Grammar g = new Grammar(rules, precedenceRules);
-            ReductionFunc<object?> rFunc = BuildReductionFunc(reductions);
-
             ImmutableList<string> specialTokens = g.GrammarSymbols.OfType<NamedSymbol>().Select(ns => ns.Name).ToImmutableList();
 
-            return new ReflectionResults(g, new ImmutableParserState<object?>(g.IntParseTableData, g.GetRuleInfo(), rFunc), specialTokens);
+            IntParseTableData parseTable = (cacheStorage ?? NullCache.Value).GetCachedValue
+            (
+                grammarInfoTypeTraits.Value,
+                IntParseTableData.TypeTraits,
+                (rules, precedenceRules),
+                _ => g.IntParseTableData.WithoutConversionDictionary()
+            );
+
+            if (miList.Any(mi => !mi.IsStatic))
+            {
+                ImmutableList<Func<object?, Func<ImmutableList<object?>, object?>>> reductions = miList.Select(GetReduction).ToImmutableList();
+                Func<object?, ReductionFunc<object?>> rFunc = BuildReductionFunc(reductions);
+                return new InstanceReflectionResults(g, obj => new ImmutableParserState<object?>(parseTable, g.GetRuleInfo(), rFunc(obj)), specialTokens);
+            }
+            else
+            {
+                ImmutableList<Func<ImmutableList<object?>, object?>> reductions = miList.Select(GetStaticReduction).ToImmutableList();
+                ReductionFunc<object?> rFunc = BuildStaticReductionFunc(reductions);
+                return new StaticReflectionResults(g, new ImmutableParserState<object?>(parseTable, g.GetRuleInfo(), rFunc), specialTokens);
+            }
         }
     }
 
-    [AttributeUsage(AttributeTargets.Method | AttributeTargets.Constructor, AllowMultiple = false, Inherited = false)]
+    [AttributeUsage(AttributeTargets.Method, AllowMultiple = false, Inherited = false)]
     public sealed class GrammarRuleAttribute : Attribute
     {
 
