@@ -1,4 +1,4 @@
-<!-- -*- coding: utf-8; fill-column: 118 -*- -->
+﻿<!-- -*- coding: utf-8; fill-column: 118 -*- -->
 
 # LrParserGen
 
@@ -73,9 +73,6 @@ than it should, or if it expects a less specific parameter type than it should. 
 this and it may be removed from a future version.
 
 ## Caveats
-
-This is not &ldquo;production-ready&rdquo; software, but it is getting there. I intend to make a NuGet package out of
-it at some point.
 
 This code uses the **Sunlighter.TypeTraitsLib** library, which is now on NuGet.
 
