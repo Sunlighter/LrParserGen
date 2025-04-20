@@ -2,7 +2,9 @@
 
 # LrParserGen
 
-An LR(1) Parser Generator that obtains grammar rules by using reflection
+An LR(1) Parser Generator that obtains grammar rules by using reflection.
+
+This is now available as a NuGet package, **Sunlighter.LrParserGenLib**.
 
 ## Purpose and Features
 
