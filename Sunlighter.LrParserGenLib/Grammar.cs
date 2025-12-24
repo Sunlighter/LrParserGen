@@ -280,7 +280,7 @@ namespace Sunlighter.LrParserGenLib
         public ImmutableSortedSet<Symbol> Symbols => symbols;
         public Associativity Associativity => associativity;
 
-        private static Lazy<ITypeTraits<PrecedenceRule>> typeTraits =
+        private static readonly Lazy<ITypeTraits<PrecedenceRule>> typeTraits =
             new Lazy<ITypeTraits<PrecedenceRule>>(GetTypeTraits, LazyThreadSafetyMode.ExecutionAndPublication);
 
         private static ITypeTraits<PrecedenceRule> GetTypeTraits()
