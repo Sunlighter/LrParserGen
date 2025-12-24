@@ -1,4 +1,6 @@
 ﻿using Sunlighter.LrParserGenLib;
+using Sunlighter.TypeTraitsLib;
+using Sunlighter.TypeTraitsLib.Building;
 using System.Collections.Immutable;
 using System.Numerics;
 
@@ -39,13 +41,21 @@ namespace LrParserGenTest
             ImmutableList<TopLevelElement> t = (ImmutableList<TopLevelElement>)result;
 
             Console.WriteLine(t.Count);
+
+            ITypeTraits<ImmutableList<TopLevelElement>> traits =
+                Builder.Instance.GetTypeTraits<ImmutableList<TopLevelElement>>();
+
+            Console.WriteLine(traits.ToDebugString(t));
         }
 
+        [UnionOfDescendants]
         public abstract class TopLevelElement
         {
 
         }
 
+        [Record]
+        [UnionCaseName("function")]
         public sealed class FunctionElement : TopLevelElement
         {
             private readonly string name;
@@ -55,10 +65,10 @@ namespace LrParserGenTest
 
             public FunctionElement
             (
-                string name,
-                ImmutableList<ArgInfo> args,
-                MyType returnType,
-                ImmutableList<Statement> body
+                [Bind("name")] string name,
+                [Bind("args")] ImmutableList<ArgInfo> args,
+                [Bind("return-type")] MyType returnType,
+                [Bind("body")] ImmutableList<Statement> body
             )
             {
                 this.name = name;
@@ -67,36 +77,46 @@ namespace LrParserGenTest
                 this.body = body;
             }
 
+            [Bind("name")]
             public string Name => name;
 
+            [Bind("args")]
             public ImmutableList<ArgInfo> Args => args;
 
+            [Bind("return-type")]
             public MyType ReturnType => returnType;
 
+            [Bind("body")]
             public ImmutableList<Statement> Body => body;
         }
 
+        [Record]
         public sealed class ArgInfo
         {
             private readonly MyType type;
             private readonly string name;
 
-            public ArgInfo(MyType type, string name)
+            public ArgInfo([Bind("type")] MyType type, [Bind("name")] string name)
             {
                 this.type = type;
                 this.name = name;
             }
 
+            [Bind("type")]
             public MyType Type => type;
 
+            [Bind("name")]
             public string Name => name;
         }
 
+        [UnionOfDescendants]
         public abstract class MyType
         {
 
         }
 
+        [Singleton(0x8689D6A3u)]
+        [UnionCaseName("int")]
         public sealed class MyIntegerType : MyType
         {
             private static readonly MyIntegerType value = new MyIntegerType();
@@ -106,37 +126,45 @@ namespace LrParserGenTest
             public static MyIntegerType Value => value;
         }
 
+        [UnionOfDescendants]
         public abstract class Statement
         {
 
         }
 
+        [Record]
+        [UnionCaseName("return-statement")]
         public sealed class ReturnStatement : Statement
         {
             private readonly MyExpression value;
 
-            public ReturnStatement(MyExpression value)
+            public ReturnStatement([Bind("value")] MyExpression value)
             {
                 this.value = value;
             }
 
+            [Bind("value")]
             public MyExpression Value => value;
         }
 
+        [UnionOfDescendants]
         public abstract class MyExpression
         {
             
         }
 
+        [Record]
+        [UnionCaseName("literal-integer-expr")]
         public sealed class LiteralIntegerExpression : MyExpression
         {
             private BigInteger value;
 
-            public LiteralIntegerExpression(BigInteger value)
+            public LiteralIntegerExpression([Bind("value")] BigInteger value)
             {
                 this.value = value;
             }
 
+            [Bind("value")]
             public BigInteger Value => value;
         }
 
