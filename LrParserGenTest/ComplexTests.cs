@@ -157,7 +157,7 @@ namespace LrParserGenTest
         [UnionCaseName("literal-integer-expr")]
         public sealed class LiteralIntegerExpression : MyExpression
         {
-            private BigInteger value;
+            private readonly BigInteger value;
 
             public LiteralIntegerExpression([Bind("value")] BigInteger value)
             {
