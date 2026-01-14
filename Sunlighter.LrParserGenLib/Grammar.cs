@@ -1,26 +1,23 @@
 ﻿using Sunlighter.TypeTraitsLib;
+using Sunlighter.TypeTraitsLib.Building;
 
 namespace Sunlighter.LrParserGenLib
 {
-    public sealed class Rule(Symbol lhs, ImmutableList<Symbol> rhs)
+    [Record]
+    public sealed class Rule([Bind("lhs")] Symbol lhs, [Bind("rhs")] ImmutableList<Symbol> rhs)
     {
+        [Bind("lhs")]
         public Symbol LHS => lhs;
 
+        [Bind("rhs")]
         public ImmutableList<Symbol> RHS => rhs;
 
-        private static readonly Lazy<ITypeTraits<Rule>> typeTraits = new Lazy<ITypeTraits<Rule>>(GetTypeTraits, LazyThreadSafetyMode.ExecutionAndPublication);
-
-        private static ITypeTraits<Rule> GetTypeTraits()
-        {
-            return new ConvertTypeTraits<Rule, Tuple<Symbol, ImmutableList<Symbol>>>
+        private static readonly Lazy<ITypeTraits<Rule>> typeTraits =
+            new Lazy<ITypeTraits<Rule>>
             (
-                r => new Tuple<Symbol, ImmutableList<Symbol>>(r.LHS, r.RHS),
-                new TupleTypeTraits<Symbol, ImmutableList<Symbol>>(Symbol.Traits, new ListTypeTraits<Symbol>(Symbol.Traits)),
-                t => new Rule(t.Item1, t.Item2)
+                () => Builder.Instance.GetTypeTraits<Rule>(),
+                LazyThreadSafetyMode.ExecutionAndPublication
             );
-        }
-
-        public static ITypeTraits<Rule> Traits => typeTraits.Value;
 
         public override bool Equals(object? obj)
         {
@@ -33,43 +30,35 @@ namespace Sunlighter.LrParserGenLib
         public override string ToString() => typeTraits.Value.ToDebugString(this);
     }
 
-    public sealed class Item(int ruleNumber, int positionOfDot, Symbol follow)
+    [Record]
+    public sealed class Item([Bind("ruleNumber")] int ruleNumber, [Bind("positionOfDot")] int positionOfDot, [Bind("follow")] Symbol follow)
     {
         private readonly int ruleNumber = ruleNumber;
         private readonly int positionOfDot = positionOfDot;
         private readonly Symbol follow = follow;
 
+        [Bind("ruleNumber")]
         public int RuleNumber => ruleNumber;
 
+        [Bind("positionOfDot")]
         public int PositionOfDot => positionOfDot;
 
+        [Bind("follow")]
         public Symbol Follow => follow;
 
-        private static ITypeTraits<Item> GetTypeTraits()
-        {
-            return new ConvertTypeTraits<Item, Tuple<int, int, Symbol>>
+        private static readonly Lazy<ITypeTraits<Item>> typeTraits =
+            new Lazy<ITypeTraits<Item>>
             (
-                i => new Tuple<int, int, Symbol>(i.ruleNumber, i.positionOfDot, i.follow),
-                new TupleTypeTraits<int, int, Symbol>
-                (
-                    Int32TypeTraits.Value,
-                    Int32TypeTraits.Value,
-                    Symbol.Traits
-                ),
-                i => new Item(i.Item1, i.Item2, i.Item3)
+                () => Builder.Instance.GetTypeTraits<Item>(),
+                LazyThreadSafetyMode.ExecutionAndPublication
             );
-        }
-
-        private static readonly Lazy<ITypeTraits<Item>> typeTraits = new Lazy<ITypeTraits<Item>>(GetTypeTraits, LazyThreadSafetyMode.ExecutionAndPublication);
-
-        public static ITypeTraits<Item> TypeTraits => typeTraits.Value;
-
-        private static readonly Lazy<Adapter<Item>> adapter = new Lazy<Adapter<Item>>(() => Adapter<Item>.Create(typeTraits.Value), LazyThreadSafetyMode.ExecutionAndPublication);
-
-        public static Adapter<Item> Adapter => adapter.Value;
 
         private static readonly Lazy<ImmutableSortedSet<Item>> emptySet =
-            new Lazy<ImmutableSortedSet<Item>>(() => ImmutableSortedSet<Item>.Empty.WithComparer(adapter.Value), LazyThreadSafetyMode.ExecutionAndPublication);
+            new Lazy<ImmutableSortedSet<Item>>
+            (
+                () => ImmutableSortedSet<Item>.Empty.WithComparer(Builder.Instance.GetAdapter<Item>()),
+                LazyThreadSafetyMode.ExecutionAndPublication
+            );
 
         public static ImmutableSortedSet<Item> EmptySet => emptySet.Value;
 
@@ -84,32 +73,27 @@ namespace Sunlighter.LrParserGenLib
         public override string ToString() => typeTraits.Value.ToDebugString(this);
     }
 
-    public sealed class ItemSet(ImmutableSortedSet<Item> items)
+    [Record]
+    public sealed class ItemSet([Bind("items")] ImmutableSortedSet<Item> items)
     {
         private readonly ImmutableSortedSet<Item> items = items;
 
+        [Bind("items")]
         public ImmutableSortedSet<Item> Items => items;
 
-        private static ITypeTraits<ItemSet> GetTypeTraits()
-        {
-            return new ConvertTypeTraits<ItemSet, ImmutableSortedSet<Item>>
+        private static readonly Lazy<ITypeTraits<ItemSet>> typeTraits =
+            new Lazy<ITypeTraits<ItemSet>>
             (
-                itemSet => itemSet.items,
-                new SetTypeTraits<Item>(Item.TypeTraits),
-                i => new ItemSet(i)
+                () => Builder.Instance.GetTypeTraits<ItemSet>(),
+                LazyThreadSafetyMode.ExecutionAndPublication
             );
-        }
-
-        private static readonly Lazy<ITypeTraits<ItemSet>> typeTraits = new Lazy<ITypeTraits<ItemSet>>(GetTypeTraits, LazyThreadSafetyMode.ExecutionAndPublication);
-
-        public static ITypeTraits<ItemSet> TypeTraits => typeTraits.Value;
-
-        private static readonly Lazy<Adapter<ItemSet>> adapter = new Lazy<Adapter<ItemSet>>(() => Adapter<ItemSet>.Create(typeTraits.Value), LazyThreadSafetyMode.ExecutionAndPublication);
-
-        public static Adapter<ItemSet> Adapter => adapter.Value;
 
         private static readonly Lazy<ImmutableSortedSet<ItemSet>> emptySet =
-            new Lazy<ImmutableSortedSet<ItemSet>>(() => ImmutableSortedSet<ItemSet>.Empty.WithComparer(adapter.Value), LazyThreadSafetyMode.ExecutionAndPublication);
+            new Lazy<ImmutableSortedSet<ItemSet>>
+            (
+                () => ImmutableSortedSet<ItemSet>.Empty.WithComparer(Builder.Instance.GetAdapter<ItemSet>()),
+                LazyThreadSafetyMode.ExecutionAndPublication
+            );
 
         public static ImmutableSortedSet<ItemSet> EmptySet => emptySet.Value;
 
@@ -119,68 +103,9 @@ namespace Sunlighter.LrParserGenLib
         }
     }
 
+    [UnionOfDescendants]
     public abstract class ParseAction<S>
     {
-        public static ITypeTraits<ParseAction<S>> GetTypeTraits(ITypeTraits<S> stateTypeTraits)
-        {
-            RecursiveTypeTraits<ParseAction<S>> recurse = new RecursiveTypeTraits<ParseAction<S>>();
-
-            ITypeTraits<ParseAction<S>> cw = new UnionTypeTraits<string, ParseAction<S>>
-            (
-                StringTypeTraits.Value,
-                ImmutableList<IUnionCaseTypeTraits<string, ParseAction<S>>>.Empty.AddRange
-                (
-                    new IUnionCaseTypeTraits<string, ParseAction<S>>[]
-                    {
-                        new UnionCaseTypeTraits2<string, ParseAction<S>, ParseAction_Shift<S>>
-                        (
-                            "shift",
-                            new ConvertTypeTraits<ParseAction_Shift<S>, S>
-                            (
-                                p => p.State,
-                                stateTypeTraits,
-                                s => new ParseAction_Shift<S>(s)
-                            )
-                        ),
-                        new UnionCaseTypeTraits2<string, ParseAction<S>, ParseAction_ReduceByRule<S>>
-                        (
-                            "reduce-by-rule",
-                            new ConvertTypeTraits<ParseAction_ReduceByRule<S>, int>
-                            (
-                                p => p.RuleNumber,
-                                Int32TypeTraits.Value,
-                                r => new ParseAction_ReduceByRule<S>(r)
-                            )
-                        ),
-                        new UnionCaseTypeTraits2<string, ParseAction<S>, ParseAction_Conflict<S>>
-                        (
-                            "conflict",
-                            new ConvertTypeTraits<ParseAction_Conflict<S>, ImmutableList<ParseAction<S>>>
-                            (
-                                p => p.ParseActions,
-                                new ListTypeTraits<ParseAction<S>>(recurse),
-                                ls => new ParseAction_Conflict<S>(ls)
-                            )
-                        ),
-                        new UnionCaseTypeTraits2<string, ParseAction<S>, ParseAction_Error<S>>
-                        (
-                            "error",
-                            new ConvertTypeTraits<ParseAction_Error<S>, DBNull>
-                            (
-                                e => DBNull.Value,
-                                new UnitTypeTraits<DBNull>(HashToken.None, DBNull.Value),
-                                d => ParseAction_Error<S>.Value
-                            )
-                        ),
-                    }
-                )
-            );
-
-            recurse.Set(cw);
-
-            return cw;
-        }
-
         public abstract ParseAction<S2> Convert<S2>(Func<S, S2> func);
 
         public virtual ImmutableSortedSet<S> AddReferencedStates(ImmutableSortedSet<S> set)
@@ -189,15 +114,18 @@ namespace Sunlighter.LrParserGenLib
         }
     }
 
+    [Record]
+    [UnionCaseName("shift")]
     public sealed class ParseAction_Shift<S> : ParseAction<S>
     {
         private readonly S state;
 
-        public ParseAction_Shift(S state)
+        public ParseAction_Shift([Bind("state")] S state)
         {
             this.state = state;
         }
 
+        [Bind("state")]
         public S State => state;
 
         public override ParseAction<S2> Convert<S2>(Func<S, S2> func)
@@ -211,15 +139,18 @@ namespace Sunlighter.LrParserGenLib
         }
     }
 
+    [Record]
+    [UnionCaseName("reduce-by-rule")]
     public sealed class ParseAction_ReduceByRule<S> : ParseAction<S>
     {
         private readonly int ruleNumber;
 
-        public ParseAction_ReduceByRule(int ruleNumber)
+        public ParseAction_ReduceByRule([Bind("ruleNumber")] int ruleNumber)
         {
             this.ruleNumber = ruleNumber;
         }
 
+        [Bind("ruleNumber")]
         public int RuleNumber => ruleNumber;
 
         public override ParseAction<S2> Convert<S2>(Func<S, S2> func)
@@ -228,15 +159,18 @@ namespace Sunlighter.LrParserGenLib
         }
     }
 
+    [Record]
+    [UnionCaseName("conflict")]
     public sealed class ParseAction_Conflict<S> : ParseAction<S>
     {
         private readonly ImmutableList<ParseAction<S>> parseActions;
 
-        public ParseAction_Conflict(ImmutableList<ParseAction<S>> parseActions)
+        public ParseAction_Conflict([Bind("parseActions")] ImmutableList<ParseAction<S>> parseActions)
         {
             this.parseActions = parseActions;
         }
 
+        [Bind("parseActions")]
         public ImmutableList<ParseAction<S>> ParseActions => parseActions;
 
         public override ParseAction<S2> Convert<S2>(Func<S, S2> func)
@@ -254,6 +188,8 @@ namespace Sunlighter.LrParserGenLib
         }
     }
 
+    [Singleton(0x404FF2B3u)]
+    [UnionCaseName("error")]
     public sealed class ParseAction_Error<S> : ParseAction<S>
     {
         private static readonly ParseAction_Error<S> value = new ParseAction_Error<S>();
@@ -275,34 +211,14 @@ namespace Sunlighter.LrParserGenLib
         NonAssociative
     }
 
-    public sealed class PrecedenceRule(ImmutableSortedSet<Symbol> symbols, Associativity associativity)
+    [Record]
+    public sealed class PrecedenceRule([Bind("symbols")] ImmutableSortedSet<Symbol> symbols, [Bind("associativity")] Associativity associativity)
     {
+        [Bind("symbols")]
         public ImmutableSortedSet<Symbol> Symbols => symbols;
+
+        [Bind("associativity")]
         public Associativity Associativity => associativity;
-
-        private static readonly Lazy<ITypeTraits<PrecedenceRule>> typeTraits =
-            new Lazy<ITypeTraits<PrecedenceRule>>(GetTypeTraits, LazyThreadSafetyMode.ExecutionAndPublication);
-
-        private static ITypeTraits<PrecedenceRule> GetTypeTraits()
-        {
-            return new ConvertTypeTraits<PrecedenceRule, (ImmutableSortedSet<Symbol>, Associativity)>
-            (
-                r => (r.Symbols, r.Associativity),
-                new ValueTupleTypeTraits<ImmutableSortedSet<Symbol>, Associativity>
-                (
-                    Grammar.SymbolSetTypeTraits,
-                    new ConvertTypeTraits<Associativity, int>
-                    (
-                        a => (int)a,
-                        Int32TypeTraits.Value,
-                        i => (Associativity)i
-                    )
-                ),
-                t => new PrecedenceRule(t.Item1, t.Item2)
-            );
-        }
-
-        public static ITypeTraits<PrecedenceRule> Traits => typeTraits.Value;
     }
 
     public sealed class Grammar
@@ -379,7 +295,7 @@ namespace Sunlighter.LrParserGenLib
         public ImmutableSortedSet<Symbol> Terminals => terminals.Value;
 
         private static readonly Lazy<ITypeTraits<ImmutableSortedSet<Symbol>>> symbolSetTypeTraits =
-            new Lazy<ITypeTraits<ImmutableSortedSet<Symbol>>>(() => new SetTypeTraits<Symbol>(Symbol.Traits), LazyThreadSafetyMode.ExecutionAndPublication);
+            new Lazy<ITypeTraits<ImmutableSortedSet<Symbol>>>(() => new SetTypeTraits<Symbol>(Builder.Instance.GetTypeTraits<Symbol>()), LazyThreadSafetyMode.ExecutionAndPublication);
 
         public static ITypeTraits<ImmutableSortedSet<Symbol>> SymbolSetTypeTraits => symbolSetTypeTraits.Value;
 
@@ -438,7 +354,7 @@ namespace Sunlighter.LrParserGenLib
                 {
                     System.Diagnostics.Debug.Assert(nonterminals.Value.Contains(s));
                     ImmutableSortedSet<Symbol> successors = Symbol.EmptySet;
-                    foreach(Rule r in rules.Where(r1 => Symbol.Traits.Compare(r1.LHS, s) == 0))
+                    foreach(Rule r in rules.Where(r1 => Builder.Instance.GetTypeTraits<Symbol>().Compare(r1.LHS, s) == 0))
                     {
                         successors = successors.Union(r.RHS);
                     }
@@ -454,7 +370,7 @@ namespace Sunlighter.LrParserGenLib
         private static readonly Lazy<ITypeTraits<ImmutableSortedDictionary<Symbol, ImmutableSortedSet<Symbol>>>> firstTableTypeTraits =
             new Lazy<ITypeTraits<ImmutableSortedDictionary<Symbol, ImmutableSortedSet<Symbol>>>>
             (
-                () => new DictionaryTypeTraits<Symbol, ImmutableSortedSet<Symbol>>(Symbol.Traits, symbolSetTypeTraits.Value),
+                () => new DictionaryTypeTraits<Symbol, ImmutableSortedSet<Symbol>>(Builder.Instance.GetTypeTraits<Symbol>(), symbolSetTypeTraits.Value),
                 LazyThreadSafetyMode.ExecutionAndPublication
             );
 
@@ -474,7 +390,7 @@ namespace Sunlighter.LrParserGenLib
                 }
                 else
                 {
-                    throw new Exception($"Symbol {Symbol.Traits.ToDebugString(symbolString[0])} not in table");
+                    throw new Exception($"Symbol {Builder.Instance.GetTypeTraits<Symbol>().ToDebugString(symbolString[0])} not in table");
                 }
                 symbolString = symbolString.RemoveAt(0);
             }
@@ -485,7 +401,7 @@ namespace Sunlighter.LrParserGenLib
         private static readonly Lazy<ImmutableSortedDictionary<Symbol, ImmutableSortedSet<Symbol>>> emptyDictionary =
             new Lazy<ImmutableSortedDictionary<Symbol, ImmutableSortedSet<Symbol>>>
             (
-                () => ImmutableSortedDictionary<Symbol, ImmutableSortedSet<Symbol>>.Empty.WithComparers(Symbol.Adapter, symbolSetAdapter.Value),
+                () => ImmutableSortedDictionary<Symbol, ImmutableSortedSet<Symbol>>.Empty.WithComparers(Builder.Instance.GetAdapter<Symbol>(), symbolSetAdapter.Value),
                 LazyThreadSafetyMode.ExecutionAndPublication
             );
 
@@ -512,7 +428,7 @@ namespace Sunlighter.LrParserGenLib
                 foreach (Symbol nt in nonterminals.Value)
                 {
                     ImmutableSortedSet<Symbol> result = Symbol.EmptySet;
-                    foreach (Rule r in rules.Where(r => Symbol.Traits.Compare(r.LHS, nt) == 0))
+                    foreach (Rule r in rules.Where(r => Builder.Instance.GetTypeTraits<Symbol>().Compare(r.LHS, nt) == 0))
                     {
                         result = result.Union(FirstOfStringByTable(current, r.RHS));
                     }
@@ -556,7 +472,7 @@ namespace Sunlighter.LrParserGenLib
                 Rule r = rules[ruleNumber];
                 foreach (int position in Enumerable.Range(0, r.RHS.Count))
                 {
-                    if (Symbol.Traits.Compare(r.RHS[position], target) == 0)
+                    if (Builder.Instance.GetTypeTraits<Symbol>().Compare(r.RHS[position], target) == 0)
                     {
                         yield return new FoundPosition(ruleNumber, position);
                     }
@@ -673,7 +589,7 @@ namespace Sunlighter.LrParserGenLib
                             possibleFollows = possibleFollows.Remove(EpsilonSymbol.Value).Add(i.Follow);
                         }
 
-                        foreach (int r2Index in Enumerable.Range(0, rules.Count).Where(i2 => Symbol.Traits.Compare(rules[i2].LHS, nextGrammarSymbol) == 0))
+                        foreach (int r2Index in Enumerable.Range(0, rules.Count).Where(i2 => Builder.Instance.GetTypeTraits<Symbol>().Compare(rules[i2].LHS, nextGrammarSymbol) == 0))
                         {
                             foreach (Symbol possibleFollow in possibleFollows)
                             {
@@ -690,7 +606,7 @@ namespace Sunlighter.LrParserGenLib
 
         private ItemSet GetInitialStateSet()
         {
-            return new ItemSet(ItemSetClosure(ImmutableSortedSet<Item>.Empty.WithComparer(Item.Adapter).Add(new Item(0, 0, EofSymbol.Value))));
+            return new ItemSet(ItemSetClosure(ImmutableSortedSet<Item>.Empty.WithComparer(Builder.Instance.GetAdapter<Item>()).Add(new Item(0, 0, EofSymbol.Value))));
         }
 
         public ItemSet InitialStateSet => initialStateSet.Value;
@@ -707,7 +623,7 @@ namespace Sunlighter.LrParserGenLib
                 if (i.PositionOfDot < r.RHS.Count)
                 {
                     Symbol nextInRule = r.RHS[i.PositionOfDot];
-                    if (Symbol.Traits.Compare(lookAhead, nextInRule) == 0)
+                    if (Builder.Instance.GetTypeTraits<Symbol>().Compare(lookAhead, nextInRule) == 0)
                     {
                         shiftTargets = shiftTargets.Add(new Item(i.RuleNumber, i.PositionOfDot + 1, i.Follow));
                     }
@@ -716,7 +632,7 @@ namespace Sunlighter.LrParserGenLib
                 {
                     System.Diagnostics.Debug.Assert(i.PositionOfDot == r.RHS.Count);
 
-                    if (Symbol.Traits.Compare(lookAhead, i.Follow) == 0)
+                    if (Builder.Instance.GetTypeTraits<Symbol>().Compare(lookAhead, i.Follow) == 0)
                     {
                         actions = actions.Add(new ParseAction_ReduceByRule<ItemSet>(i.RuleNumber));
                     }
@@ -823,8 +739,8 @@ namespace Sunlighter.LrParserGenLib
                 stateTraits,
                 new DictionaryTypeTraits<Symbol, ParseAction<S>>
                 (
-                    Symbol.Traits,
-                    ParseAction<S>.GetTypeTraits(stateTraits)
+                    Builder.Instance.GetTypeTraits<Symbol>(),
+                    Builder.Instance.GetTypeTraits<ParseAction<S>>()
                 )
             );
         }
@@ -832,7 +748,7 @@ namespace Sunlighter.LrParserGenLib
         private ImmutableSortedDictionary<ItemSet, ImmutableSortedDictionary<Symbol, ParseAction<ItemSet>>> GetItemSetParseTable()
         {
             ImmutableSortedDictionary<ItemSet, ImmutableSortedDictionary<Symbol, ParseAction<ItemSet>>> result =
-                ImmutableSortedDictionary<ItemSet, ImmutableSortedDictionary<Symbol, ParseAction<ItemSet>>>.Empty.WithComparers(ItemSet.Adapter);
+                ImmutableSortedDictionary<ItemSet, ImmutableSortedDictionary<Symbol, ParseAction<ItemSet>>>.Empty.WithComparers(Builder.Instance.GetAdapter<ItemSet>());
 
             ImmutableList<ItemSet> unexplored = ImmutableList<ItemSet>.Empty.Add(initialStateSet.Value);
 
@@ -846,7 +762,7 @@ namespace Sunlighter.LrParserGenLib
                 if (!result.ContainsKey(itemSet))
                 {
                     ImmutableSortedDictionary<Symbol, ParseAction<ItemSet>> actions =
-                        ImmutableSortedDictionary<Symbol, ParseAction<ItemSet>>.Empty.WithComparers(Symbol.Adapter);
+                        ImmutableSortedDictionary<Symbol, ParseAction<ItemSet>>.Empty.WithComparers(Builder.Instance.GetAdapter<Symbol>());
 
                     ImmutableSortedSet<ItemSet> referencedStates = ItemSet.EmptySet;
 
@@ -878,7 +794,7 @@ namespace Sunlighter.LrParserGenLib
         {
             ImmutableSortedDictionary<ItemSet, ImmutableSortedDictionary<Symbol, ParseAction<ItemSet>>> oldParseTable = itemSetParseTable.Value;
 
-            ImmutableSortedDictionary<ItemSet, int> conversionDict = ImmutableSortedDictionary<ItemSet, int>.Empty.WithComparers(ItemSet.Adapter);
+            ImmutableSortedDictionary<ItemSet, int> conversionDict = ImmutableSortedDictionary<ItemSet, int>.Empty.WithComparers(Builder.Instance.GetAdapter<ItemSet>());
 
             int i = 0;
             foreach(ItemSet itemSet in oldParseTable.Keys)
@@ -893,7 +809,7 @@ namespace Sunlighter.LrParserGenLib
             {
                 System.Diagnostics.Debug.Assert(conversionDict[kvp.Key] == newParseTable.Count);
 
-                ImmutableSortedDictionary<Symbol, ParseAction<int>>.Builder b = ImmutableSortedDictionary<Symbol, ParseAction<int>>.Empty.WithComparers(Symbol.Adapter).ToBuilder();
+                ImmutableSortedDictionary<Symbol, ParseAction<int>>.Builder b = ImmutableSortedDictionary<Symbol, ParseAction<int>>.Empty.WithComparers(Builder.Instance.GetAdapter<Symbol>()).ToBuilder();
                 foreach(KeyValuePair<Symbol, ParseAction<ItemSet>> kvp2 in kvp.Value)
                 {
                     b.Add(kvp2.Key, kvp2.Value.Convert(itemSet => conversionDict[itemSet]));
@@ -959,11 +875,11 @@ namespace Sunlighter.LrParserGenLib
                 (
                     new ListTypeTraits<ImmutableSortedDictionary<Symbol, ParseAction<int>>>
                     (
-                        new DictionaryTypeTraits<Symbol, ParseAction<int>>(Symbol.Traits, ParseAction<int>.GetTypeTraits(Int32TypeTraits.Value))
+                        new DictionaryTypeTraits<Symbol, ParseAction<int>>(Builder.Instance.GetTypeTraits<Symbol>(), Builder.Instance.GetTypeTraits<ParseAction<int>>())
                     ),
                     new OptionTypeTraits<ImmutableSortedDictionary<ItemSet, int>>
                     (
-                        new DictionaryTypeTraits<ItemSet, int>(ItemSet.TypeTraits, Int32TypeTraits.Value)
+                        new DictionaryTypeTraits<ItemSet, int>(Builder.Instance.GetTypeTraits<ItemSet>(), Int32TypeTraits.Value)
                     ),
                     Int32TypeTraits.Value
                 ),

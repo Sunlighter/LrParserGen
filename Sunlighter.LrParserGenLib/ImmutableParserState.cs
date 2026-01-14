@@ -1,4 +1,6 @@
-﻿namespace Sunlighter.LrParserGenLib
+﻿using Sunlighter.TypeTraitsLib.Building;
+
+namespace Sunlighter.LrParserGenLib
 {
     public delegate TValue ReductionFunc<TValue>(ReductionInfo info, ImmutableList<TValue> args);
 
@@ -87,7 +89,7 @@
 
                         if (ruleNumber == 0)
                         {
-                            if (Symbol.Traits.Compare(terminalType, EofSymbol.Value) == 0)
+                            if (Builder.Instance.GetTypeTraits<Symbol>().Compare(terminalType, EofSymbol.Value) == 0)
                             {
                                 // about to accept input
                                 return Option<ImmutableParserState<TValue>>.Some(state);

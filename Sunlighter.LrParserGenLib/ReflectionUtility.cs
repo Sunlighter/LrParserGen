@@ -1,4 +1,5 @@
 ﻿using Sunlighter.TypeTraitsLib;
+using Sunlighter.TypeTraitsLib.Building;
 using System.Reflection;
 
 namespace Sunlighter.LrParserGenLib
@@ -85,7 +86,7 @@ namespace Sunlighter.LrParserGenLib
                     pra => new PrecedenceRule
                     (
                         ImmutableSortedSet<Symbol>.Empty
-                            .WithComparer(Symbol.Adapter)
+                            .WithComparer(Builder.Instance.GetAdapter<Symbol>())
                             .Union(pra.Symbols.SplitOnWhiteSpace().Select(s => new NamedSymbol(s))),
                         pra.Associativity
                     )
@@ -226,8 +227,8 @@ namespace Sunlighter.LrParserGenLib
         {
             return new ValueTupleTypeTraits<ImmutableList<Rule>, ImmutableList<PrecedenceRule>>
             (
-                new ListTypeTraits<Rule>(Rule.Traits),
-                new ListTypeTraits<PrecedenceRule>(PrecedenceRule.Traits)
+                new ListTypeTraits<Rule>(Builder.Instance.GetTypeTraits<Rule>()),
+                new ListTypeTraits<PrecedenceRule>(Builder.Instance.GetTypeTraits<PrecedenceRule>())
             );
         }
 

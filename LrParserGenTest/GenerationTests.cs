@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using System.Text.RegularExpressions;
 using Sunlighter.TypeTraitsLib;
+using Sunlighter.TypeTraitsLib.Building;
 using System.Diagnostics;
 
 namespace LrParserGenTest
@@ -15,7 +16,7 @@ namespace LrParserGenTest
 
             foreach (int i in Enumerable.Range(0, rules.Count))
             {
-                Debug.WriteLine("  " + i + ": " + Rule.Traits.ToDebugString(rules[i]));
+                Debug.WriteLine("  " + i + ": " + Builder.Instance.GetTypeTraits<Rule>().ToDebugString(rules[i]));
             }
 
             Grammar g = new Grammar(rules, precedenceRules);
@@ -47,9 +48,9 @@ namespace LrParserGenTest
             Debug.WriteLine(Grammar.FirstTableTypeTraits.ToDebugString(g.FollowTable));
 
             Debug.WriteLine("Initial State Set");
-            Debug.WriteLine(ItemSet.TypeTraits.ToDebugString(g.InitialStateSet));
+            Debug.WriteLine(Builder.Instance.GetTypeTraits<ItemSet>().ToDebugString(g.InitialStateSet));
 
-            ITypeTraits<ParseAction<ItemSet>> itemSetParseActionCompareWorker = ParseAction<ItemSet>.GetTypeTraits(ItemSet.TypeTraits);
+            ITypeTraits<ParseAction<ItemSet>> itemSetParseActionCompareWorker = Builder.Instance.GetTypeTraits<ParseAction<ItemSet>>();
 
             Debug.WriteLine("Parse action on seeing \"EOF\"");
             Debug.WriteLine(itemSetParseActionCompareWorker.ToDebugString(g.GetParseAction(g.InitialStateSet, EofSymbol.Value)));
@@ -64,14 +65,14 @@ namespace LrParserGenTest
 
             foreach (KeyValuePair<ItemSet, ImmutableSortedDictionary<Symbol, ParseAction<ItemSet>>> kvp in g.ItemSetParseTable)
             {
-                Debug.WriteLine("  " + ItemSet.TypeTraits.ToDebugString(kvp.Key));
+                Debug.WriteLine("  " + Builder.Instance.GetTypeTraits<ItemSet>().ToDebugString(kvp.Key));
                 foreach (KeyValuePair<Symbol, ParseAction<ItemSet>> kvp2 in kvp.Value)
                 {
-                    Debug.WriteLine("    " + Symbol.Traits.ToDebugString(kvp2.Key) + " " + itemSetParseActionCompareWorker.ToDebugString(kvp2.Value));
+                    Debug.WriteLine("    " + Builder.Instance.GetTypeTraits<Symbol>().ToDebugString(kvp2.Key) + " " + itemSetParseActionCompareWorker.ToDebugString(kvp2.Value));
                 }
             }
 
-            ITypeTraits<ParseAction<int>> intParseActionCompareWorker = ParseAction<int>.GetTypeTraits(Int32TypeTraits.Value);
+            ITypeTraits<ParseAction<int>> intParseActionCompareWorker = Builder.Instance.GetTypeTraits<ParseAction<int>>();
 
             Debug.WriteLine("Int Parse Table");
 
@@ -80,7 +81,7 @@ namespace LrParserGenTest
                 Debug.WriteLine("  " + i);
                 foreach (KeyValuePair<Symbol, ParseAction<int>> kvp2 in g.IntParseTableData.ParseTable[i])
                 {
-                    Debug.WriteLine("    " + Symbol.Traits.ToDebugString(kvp2.Key) + " " + intParseActionCompareWorker.ToDebugString(kvp2.Value));
+                    Debug.WriteLine("    " + Builder.Instance.GetTypeTraits<Symbol>().ToDebugString(kvp2.Key) + " " + intParseActionCompareWorker.ToDebugString(kvp2.Value));
                 }
             }
 
