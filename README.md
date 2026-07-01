@@ -1,4 +1,4 @@
-﻿<!-- -*- coding: utf-8; fill-column: 118 -*- -->
+<!-- -*- coding: utf-8; fill-column: 118 -*- -->
 
 # LrParserGen
 
@@ -79,6 +79,10 @@ This code uses the **Sunlighter.TypeTraitsLib** library, which is now on NuGet.
 The &ldquo;lexical analyzers&rdquo; included in this library currently split on whitespace, which makes the lexers
 easy to write, but this means you have to put spaces everywhere in the input to separate the tokens. There is a
 separate **LexerGen** project, which can be used with this one.
+
+**Note:** In some cases you don&rsquo;t need to use a lexical analyzer generator at all. For example, LR parsers can
+be used to make very convenient &ldquo;fluent APIs&rdquo; which can be used to build complex data structures. The
+fluent API functions work by shifting tokens into the parser.
 
 If the parser&rsquo;s input has a syntax error, it can be hard to find the error in the input. Right now you get a
 &ldquo;token number.&rdquo; It may be necessary to use the Visual Studio debugger to see why the erroneous input is
