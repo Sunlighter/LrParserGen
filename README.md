@@ -39,7 +39,7 @@ There are two general ways to use this library.
 One way is to directly construct an instance of the `Grammar` class. The `Grammar` class has a number of lazy
 properties such as the `IntParseTableData` class, which contains the parse table. This table can be serialized. Before
 constructing the `Grammar` class, it is important to &ldquo;augment&rdquo; the list of rules by prepending a rule that
-reduces the desired start symbol to `StartState.Value`.
+reduces the desired start symbol to `StartSymbol.Value`.
 
 The other way is to use the `ReflectionUtility.BuildParser` function. This function takes a start symbol and a type
 (which should be a class, struct, or interface), and reflects over the type, and gathers any methods that have a
